@@ -59,7 +59,7 @@ def run_one(n, name, old, new, tmp_root):
         env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
         try:
             r = subprocess.run(args, cwd=work, env=env, capture_output=True, text=True, timeout=TIMEOUT)
-            return n, name, old, new, "UEBERLEBT" if r.returncode == 0 else "gefunden"
+            return n, name, old, new, "ÜBERLEBT" if r.returncode == 0 else "gefunden"
         except subprocess.TimeoutExpired:
             return n, name, old, new, "gefunden(Zeitüberschreitung)"
     finally:
@@ -77,7 +77,7 @@ def main():
     tmp_root = tempfile.mkdtemp(prefix="uldk_mut_")
     status = run_one(0, "uldk_model.py", "from __future__ import annotations",
                       "from __future__ import annotations", tmp_root)[4]
-    if status != "UEBERLEBT":
+    if status != "ÜBERLEBT":
         print(f"ABBRUCH: unveränderte Kopie besteht die Tests nicht ({status}) - Ergebnisse wären wertlos")
         shutil.rmtree(tmp_root, ignore_errors=True)
         return 2
@@ -91,9 +91,9 @@ def main():
             if res_status.startswith("FEHLER"):
                 errors.append((n, name, old[:60], res_status))
                 print(f"[{n:3d}] FEHLER (Stelle nicht eindeutig: {res_status})  {name}: {old[:60]!r}", flush=True)
-            elif res_status == "UEBERLEBT":
+            elif res_status == "ÜBERLEBT":
                 survivors.append((n, name, old[:70], new[:70]))
-                print(f"[{n:3d}] UEBERLEBT  {name}: {old[:80]!r} -> {new[:80]!r}", flush=True)
+                print(f"[{n:3d}] ÜBERLEBT  {name}: {old[:80]!r} -> {new[:80]!r}", flush=True)
             else:
                 killed += 1
                 print(f"[{n:3d}] {res_status}  {name}", flush=True)
