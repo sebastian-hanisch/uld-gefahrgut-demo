@@ -1,6 +1,6 @@
 # ☣️ Gefahrgut-Trennung: sicher UND schwer beladen?
 
-*(noch nicht deployed)*
+**[→ Demo live ausprobieren](https://sebastianhanisch-uld-gefahrgut-demo.streamlit.app/)**
 
 Drittes Stück der Packen-Ausbaulinie, baut auf [`uld-beladeplan-demo`](https://github.com/sebastian-hanisch/uld-beladeplan-demo)
 (Stück 2) auf. Dort kennt die Zuordnung ULD→Position nur Gewicht und Schwerpunkt. In der Praxis dürfen
