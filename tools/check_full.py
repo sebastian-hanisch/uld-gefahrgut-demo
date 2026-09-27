@@ -7,16 +7,17 @@ ULD-Ziehung UND der Zielwert (Gewicht) jeder CP-SAT-Lösung sind deshalb bitglei
 das bestätigt dieses Gate für ALLE gewichtsbasierten Felder (mean_w_free, mean_w_seg, cost_pct, cost_kg_mean,
 cost_kg_max, share_instances_with_cost, exact_optimal_rate).
 
-**Ausnahme, beim Bauen gefunden (AP 7):** `violation_rate_free` ist NICHT bitgleich reproduzierbar. Grund:
-der "freie" CP-SAT-Lauf (respect_segregation=False) optimiert nur das Gewicht und kennt die Trennvorschrift
-nicht - bei mehreren gewichtsgleichen optimalen Zuordnungen (Gleichstand) ist es reiner Zufall, welche davon
-der Solver zurückgibt (`num_search_workers=8`, dieselbe Klasse Nichtdeterminismus wie die CP-SAT-Gleichstand-
-Flakiness in uld-beladeplan-demo, siehe `feedback_cp_sat_lexicographic_tiebreak.md`) - und OB die konkret
-zurückgegebene Zuordnung die Trennvorschrift verletzt, hängt von genau dieser willkürlichen Wahl ab. Empirisch
-bestätigt: bei drei aufeinanderfolgenden vollen Läufen derselben Zelle (width=1.0, dg_share=0.2, n=8) wurden
-0,1167 / 0,10 / 0,1333 gemessen - der Zielwert (mean_w_free) blieb in allen drei Läufen exakt identisch. Das
-Gate vergleicht `violation_rate_free` deshalb mit einer Toleranz (höchstens 3 von 60 Instanzen, 0,05) statt
-bitgleich - alle anderen Felder bleiben exakt.
+**Frühere Ausnahme, jetzt behoben (AP 7 / CI-Fund):** `violation_rate_free` war ursprünglich NICHT bitgleich
+reproduzierbar. Grund: der "freie" CP-SAT-Lauf (respect_segregation=False) optimiert nur das Gewicht und kennt
+die Trennvorschrift nicht - bei mehreren gewichtsgleichen optimalen Zuordnungen (Gleichstand) entschied
+`num_search_workers=8` (mehrere parallele Suchprozesse wetteifern um die erste gefundene Lösung) willkürlich,
+welche davon zurückgegeben wird, und OB die konkret zurückgegebene Zuordnung die Trennvorschrift verletzt,
+hing von genau dieser Wahl ab - reproduzierbar sogar innerhalb WIEDERHOLTER Läufe auf derselben Maschine, nicht
+nur zwischen Plattformen (derselbe CI-Fund, der zum lexikografischen Zweitterm in uldk_oracle.py führte - der
+Zweitterm allein reichte aber nicht, weil eine Summe über Positionsindizes keine echte lexikografische Ordnung
+ist). Behoben durch `solver.parameters.num_search_workers = 1` + festen `random_seed` (uldk_oracle.py) - macht
+CP-SATs Suche vollständig deterministisch, dieses Gate vergleicht `violation_rate_free` deshalb jetzt wieder
+bitgleich wie alle anderen Felder, keine Toleranz mehr nötig.
 
 Aufruf (im Projektordner): _venvs/runtime/Scripts/python.exe tools/check_full.py
 (Laufzeit siehe tools/sweep.py - deshalb nicht Teil der CI.)"""
@@ -30,17 +31,12 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 from sweep import run_sweep  # noqa: E402
 
-VIOLATION_RATE_TOLERANCE = 3 / 60  # siehe Modul-Docstring: bis zu 3 von 60 Instanzen können kippen
-
 
 def rows_match(got: dict, exp: dict) -> bool:
     if set(got) != set(exp):
         return False
     for key in got:
-        if key == "violation_rate_free":
-            if abs(got[key] - exp[key]) > VIOLATION_RATE_TOLERANCE + 1e-9:
-                return False
-        elif got[key] != exp[key]:
+        if got[key] != exp[key]:
             return False
     return True
 
@@ -64,7 +60,7 @@ def main():
     print(f"Kopfdaten: {'bitgleich' if not top_mismatches else f'{len(top_mismatches)} Abweichungen'}")
     for m in top_mismatches:
         print("   ", m)
-    print(f"Zeilen (54 Zellen, violation_rate_free mit Toleranz 3/60): "
+    print(f"Zeilen (54 Zellen, alle Felder bitgleich): "
           f"{'bestanden' if not row_mismatches else f'{len(row_mismatches)} Abweichungen'}")
     for m in row_mismatches[:5]:
         print("   ", m)

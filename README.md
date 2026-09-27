@@ -46,8 +46,8 @@ Alle Zahlen aus `data/uldk_results.json`, nachgerechnet in `tests/test_claims.py
 
 | Frage | Befund |
 |---|---|
-| Verletzt eine Regel ohne Gefahrgutwissen die Trennvorschrift? | Ja, oft: im Mittel über alle 27 Hauptsweep-Zellen **41,8 %** der Instanzen, Maximum **80,0 %** (±0,3 m, 60 % Gefahrgutanteil, 16 ULDs), Minimum 11,7 %. |
-| Treibt der Gefahrgutanteil die Verletzungsrate stärker als das Schwerpunktfenster? | Ja: bei ±0,5 m, 12 ULDs steigt sie mit dem Anteil 20/40/60 % von **26,7 % auf 35,0 % auf 68,3 %**. |
+| Verletzt eine Regel ohne Gefahrgutwissen die Trennvorschrift? | Ja, oft: im Mittel über alle 27 Hauptsweep-Zellen **44,4 %** der Instanzen, Maximum **75,0 %** (±0,3 m, 60 % Gefahrgutanteil, 16 ULDs), Minimum 13,3 %. |
+| Treibt der Gefahrgutanteil die Verletzungsrate stärker als das Schwerpunktfenster? | Ja: bei ±0,5 m, 12 ULDs steigt sie mit dem Anteil 20/40/60 % von **20,0 % auf 46,7 % auf 70,0 %**. |
 | Kostet die Einhaltung der Standard-Trennvorschrift bei 10 Positionen Ladegewicht? | **Nein, nie** - in allen 27 Hauptsweep-Zellen exakt 0,00 %. |
 | Kostet die Einhaltung der strengen Trennvorschrift bei 10 Positionen Ladegewicht? | **Fast nie** - in 8 von 9 gemessenen Zellen exakt 0,00 %, nur bei 60 % Gefahrgutanteil und 16 ULDs ein kleiner realer Preis (0,37 %, 56,9 kg). |
 | Wird der Preis real, wenn Positionen knapp werden? | Ja: bei 4-6 Positionen und strenger Trennvorschrift entsteht in 14 von 27 gemessenen Zellen ein Preis > 0, bis zu **1,93 %** (124,2 kg im Mittel, Maximum 1.245,8 kg). |
@@ -89,7 +89,8 @@ keiner der fünf Presets variiert die Fensterbreite, (2) ihr Effekt ist im Haupt
 (schwächerer Treiber als der Gefahrgutanteil), (3) die App rechnet die Hauptansicht ohnehin **immer live**
 (beide CP-SAT-Läufe), die Messreihe bedient nur die vorgerechneten Kernabschnitt-Grafiken, nicht eine
 Zelle-für-jede-Reglerkombination-Suche wie bei `uld-beladeplan-demo`. Rechenzeit: Hauptsweep + Zusatzmessung
-zusammen unter 5 Minuten (`tools/sweep.py`, 54 Zellen × 60 Instanzen × 2 CP-SAT-Läufe = 6.480 Läufe).
+zusammen rund 14 Minuten (`tools/sweep.py`, 54 Zellen × 60 Instanzen × 2 CP-SAT-Läufe = 6.480 Läufe -
+Einzelprozess statt paralleler Suche, siehe „Befunde und Korrekturen gegenüber dem Plan" unten).
 
 **Der zentrale, im Plan nicht erwartete Befund:** selbst die **strenge** Trennvorschrift kostet bei **10
 Positionen** in **8 von 9** gemessenen Zellen exakt 0,00 % - nur die extremste Zelle (60 % Gefahrgutanteil, 16
@@ -107,19 +108,39 @@ bei sonst gleicher Einstellung (124,2 kg im Mittel - weniger Positionen kosten m
 Standard-Seed (28) ist so gewählt, dass die **live gezeigte Einzelinstanz** selbst einen realen Kostenunterschied
 zeigt (nicht nur der Messreihen-Durchschnitt) - siehe `tests/test_app.py::test_default_view_shows_a_real_nonzero_economic_cost`.
 
-**Beim Bauen gefunden (AP 7, Verifikation):** `tools/check_full.py` (volles Bau-Gate, wiederholt die
-Messreihe und vergleicht gegen `data/uldk_results.json`) zeigte anfangs Abweichungen in `violation_rate_free`
-über mehrere Zellen - obwohl alle gewichtsbasierten Felder (`mean_w_free`, `cost_pct`, `cost_kg_mean` usw.)
-bitgleich reproduziert wurden. Ursache: derselbe CP-SAT-Gleichstand-Mechanismus wie in
-`uld-beladeplan-demo` (`feedback_cp_sat_lexicographic_tiebreak.md`) - der „freie" Lauf optimiert nur das
-Gewicht und kennt die Trennvorschrift nicht; bei mehreren gewichtsgleichen optimalen Zuordnungen entscheidet
-`num_search_workers=8` willkürlich (aber reproduzierbar innerhalb eines Prozesses), welche davon
-zurückgegeben wird - und ob GENAU diese die Trennvorschrift verletzt, ist bei solchen Gleichständen Zufall.
-Empirisch bestätigt: drei aufeinanderfolgende volle Läufe derselben Zelle (±1,0 m, 20 % Gefahrgutanteil, 8
-ULDs) maßen 11,67 % / 10,0 % / 13,33 % Verletzungsrate bei exakt identischem Zielwert. Behoben, indem
-`tools/check_full.py` `violation_rate_free` mit einer Toleranz (höchstens 3 von 60 Instanzen) statt bitgleich
-vergleicht - alle anderen Felder bleiben exakt. Die einzelnen, für Presets und Tests verwendeten Instanzen
-(feste Seeds) wurden über mehrere Wiederholungen als stabil bestätigt, sind also nicht betroffen.
+**Beim Bauen gefunden, dann als CI-Fund vertieft (AP 7):** `tools/check_full.py` (volles Bau-Gate, wiederholt
+die Messreihe und vergleicht gegen `data/uldk_results.json`) zeigte anfangs Abweichungen in
+`violation_rate_free` über mehrere Zellen - obwohl alle gewichtsbasierten Felder (`mean_w_free`, `cost_pct`,
+`cost_kg_mean` usw.) bitgleich reproduziert wurden. Ursache: der „freie" Lauf optimiert nur das Gewicht und
+kennt die Trennvorschrift nicht; bei mehreren gewichtsgleichen optimalen Zuordnungen ist es zunächst Zufall,
+welche der Solver zurückgibt - und ob GENAU diese die Trennvorschrift verletzt, hängt von dieser Wahl ab
+(derselbe CP-SAT-Gleichstand-Mechanismus wie in `uld-beladeplan-demo`,
+`feedback_cp_sat_lexicographic_tiebreak.md`). Ein lexikografischer Zweitterm in der Zielfunktion
+(`uldk_oracle.py`: Gewicht dominiert über `PRIMARY_SCALE`, ein Zweitterm wählt unter Gleichständen) schien das
+zunächst zu beheben - ein Test blieb aber lokal grün und auf CI (anderes Betriebssystem) rot. Grund, tiefer
+gefunden: eine **Summe** über Positionsindizes ist keine echte lexikografische Ordnung, verschiedene
+Zuordnungen können dieselbe Summe ergeben - der Zweitterm verkleinert die Gleichstands-Klasse nur, hebt sie
+nicht vollständig auf. Bei `num_search_workers=8` wetteifern mehrere Suchprozesse parallel um den ersten
+gefundenen optimalen Wert; bei einem echten Gleichstand im Zweitterm entscheidet die Thread-Ankunftsreihenfolge
+- **nachgewiesen durch wiederholte Läufe auf DERSELBEN Maschine, nicht nur zwischen Plattformen:** von 200
+Wiederholungen einzelner Zellen-Instanzen kippten einige erst nach 20-60 Wiederholungen (nicht schon bei den
+ersten 5-15, die ursprünglich als „stabil" durchgingen) - Stabilität über wenige Wiederholungen zu bestätigen
+war selbst keine verlässliche Methode. **Behoben durch `solver.parameters.num_search_workers = 1` + festen
+`random_seed`** (`uldk_oracle.py`) statt einer Toleranz: ein einzelner Suchprozess mit festem Seed macht
+CP-SATs Suche vollständig reproduzierbar, unabhängig von Plattform und Threadplanung - `violation_rate_free`
+ist jetzt wieder bitgleich reproduzierbar wie alle anderen Felder (`tools/check_full.py` vergleicht wieder ohne
+Toleranz). Nebeneffekt: ein einzelner Suchprozess braucht gelegentlich länger, um ein bereits gefundenes
+Optimum zu *beweisen* (eine von 3.240 Hauptsweep-Instanzen brauchte mehr als die ursprünglichen 3,0 s -
+`tools/sweep.py`s `TIME_LIMIT` deshalb auf 8,0 s angehoben), und die Rechenzeit der Messreihe stieg von unter 5
+auf rund 14 Minuten (Einzelprozess statt 8 paralleler Suchprozesse je Lauf). Weil sich dadurch einzelne
+`violation_rate_free`-Werte je Zelle gegenüber der ursprünglichen (nicht reproduzierbaren) Messung verschoben
+haben, wurden alle Verletzungsraten-Zahlen in diesem README neu aus der korrigierten `data/uldk_results.json`
+gezogen (Kostenzahlen sind vom Zweitterm nicht betroffen und bitgleich unverändert geblieben, siehe oben). Die
+vier eingefrorenen Instanzen in `tests/data/uldk_frozen.json` wurden mit dem korrigierten, jetzt echt
+deterministischen Löser neu erzeugt; eine davon (`n_pos=10, width=0.5, dg_share=0.4, n_ulds=12`) bekam dabei
+einen neuen Seed (5 → 1), weil der alte Seed unter der jetzt deterministischen Suche keine Verletzung mehr
+zeigte und die dritte Meldungsklasse („unsicher, aber kostenlos") sonst durch keinen der vier Fälle mehr
+abgedeckt gewesen wäre (`tests/test_frozen_reference.py::test_the_frozen_set_covers_all_three_judgment_states`).
 
 ## Tests
 

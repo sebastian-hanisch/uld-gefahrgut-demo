@@ -1,10 +1,12 @@
 """Fehler-Einbau-Test für uldk_model.py: baut einzeln einen Fehler ein und prüft, ob die Tests ihn finden.
 
 Aufruf (im Projektordner): _venvs/test/Scripts/python.exe tools/mutation_check.py [--jobs N]
-Für ein reproduzierbares Ergebnis --jobs 1 verwenden (langsamer): bei starker Parallelität können mehrere
-gleichzeitige CP-SAT-Läufe (je `num_search_workers=8` in uldk_oracle.py) unter CPU-Konkurrenz das Zeitlimit
-knapper ausschöpfen und dadurch vereinzelt andere Überlebende melden - siehe uld-beladeplan-demo/tools/mutants.py
-EQUIVALENT_NOTES für den dort beobachteten Effekt.
+Für ein reproduzierbares Ergebnis --jobs 1 verwenden (langsamer): uldk_oracle.py löst mit
+`num_search_workers=1` und festem `random_seed` (siehe dort - Zweitterm allein reichte nicht, s. README
+„Befunde und Korrekturen"), einzelne CP-SAT-Läufe sind also deterministisch, aber bei starker Parallelität
+können mehrere gleichzeitige Prozesse unter CPU-Konkurrenz das Zeitlimit knapper ausschöpfen und dadurch
+vereinzelt andere Überlebende melden - siehe uld-beladeplan-demo/tools/mutants.py EQUIVALENT_NOTES für den
+dort beobachteten Effekt.
 Jeder Mutant ersetzt genau eine Stelle; Überlebende sind entweder gleichwertig (kein sichtbarer Unterschied)
 oder eine Lücke der Tests. Jeder Mutant läuft in einer eigenen temporären Kopie (deshalb parallel möglich,
 Standard 4 Jobs); PYTHONDONTWRITEBYTECODE=1, damit veralteter Bytecode keine Überlebenden vortäuscht;

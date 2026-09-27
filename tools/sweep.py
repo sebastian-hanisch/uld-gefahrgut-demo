@@ -53,7 +53,12 @@ N_ULDS = [8, 12, 16]
 N_POS_LEVELS = [4, 6, 10]
 STRONG_WIDTH = 0.5  # siehe Modul-Docstring: Fensterbreite in der Zusatzmessung festgehalten
 N_INSTANCES = 60
-TIME_LIMIT = 3.0
+# 8.0 statt 3.0 s (CI-Fund-Korrektur): mit dem deterministischen Einzel-Suchprozess (uldk_oracle.py,
+# num_search_workers=1) braucht der Solver gelegentlich länger, um ein bereits gefundenes Optimum zu BEWEISEN
+# (Portfolio-Suche mit mehreren Threads schließt die Optimalitätslücke schneller) - bei 3,0 s blieb eine von
+# 3.240 Zellen-Instanzen (standard, n_pos=10, width=1,0 m, dg_share=0,4, n=8) unbewiesen (exact_optimal_rate
+# 0,9833 statt 1,0), bei 8,0 s bewiesen alle. Alle anderen Felder dieser Zelle blieben dabei bitgleich.
+TIME_LIMIT = 8.0
 
 
 def make_positions(n_pos: int) -> list[Position]:

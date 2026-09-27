@@ -59,10 +59,30 @@ def solve_exact(ulds: list[ULD], positions: list[Position], ac: Aircraft,
                     if frozenset((ulds[i1].dg_class, ulds[i2].dg_class)) in seg:
                         model.Add(x[i1, jA] + x[i2, jB] <= 1)
 
-    model.Maximize(sum(x[i, j] * int(round(ulds[i].weight_kg * SCALE)) for i in range(n) for j in range(m)))
+    # Lexikografischer Zweitterm: bei mehreren gewichtsgleich optimalen Zuordnungen entscheidet CP-SAT mit
+    # einem einzelnen Zielterm nicht deterministisch zwischen Prozessen/Plattformen (Ties werden je nach
+    # Thread-Zeitplan unterschiedlich aufgelöst - beim ersten CI-Lauf gefunden: derselbe Zielwert, aber eine
+    # andere Zuordnung, wodurch eine auf einer bestimmten Instanz erwartete Meldung je nach Umgebung
+    # unterschiedlich ausfiel). PRIMARY_SCALE ist größer als der maximal mögliche Primärwert, damit der
+    # Zweitterm niemals eine Gewichtsentscheidung verändert, nur unter gleich guten Zuordnungen wählt.
+    PRIMARY_SCALE = 1000
+    primary = sum(x[i, j] * int(round(ulds[i].weight_kg * SCALE)) for i in range(n) for j in range(m))
+    tiebreak = sum(x[i, j] * (i * m + j) for i in range(n) for j in range(m))
+    model.Maximize(primary * PRIMARY_SCALE - tiebreak)
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = time_limit_s
-    solver.parameters.num_search_workers = 8
+    # Einzelner Suchprozess + fester random_seed: der lexikografische Zweitterm oben verkleinert die
+    # Gleichstands-Klasse, hebt sie aber nicht vollständig auf (eine Summe über Positionsindizes ist keine
+    # echte lexikografische Ordnung - verschiedene Zuordnungen können dieselbe Summe ergeben). Mit
+    # num_search_workers=8 wettlaufen mehrere Suchprozesse parallel um den ersten gefundenen optimalen Wert;
+    # bei echtem Gleichstand im Zweitterm entscheidet dann die Thread-Ankunftsreihenfolge, die von Lauf zu Lauf
+    # variiert (durch wiederholte Läufe auf DERSELBEN Maschine nachgewiesen, nicht nur zwischen Plattformen -
+    # betraf z. B. den eingefrorenen Fall seed=3 in tests/data/uldk_frozen.json und den App-Zustand seed=24 in
+    # tests/test_app.py). Ein einzelner Suchprozess mit festem Seed macht CP-SATs Suche vollständig
+    # reproduzierbar (dieselbe Eingabe -> derselbe Suchpfad -> dieselbe Lösung, unabhängig von Plattform/
+    # Threadplanung), ohne den Zweitterm selbst zu verändern.
+    solver.parameters.num_search_workers = 1
+    solver.parameters.random_seed = 12345
     status = solver.Solve(model)
     assign = {}
     if status in (cp_model.OPTIMAL, cp_model.FEASIBLE):

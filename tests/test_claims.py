@@ -14,16 +14,16 @@ STRONG = R.strong_sweep_rows(D)
 # --- Hauptsweep (Standard-Trennvorschrift, 10 Positionen) -----------------------------------------------------
 def test_befund_regel_ohne_gefahrgutwissen_verletzt_oft():
     mean_vio = R.mean_violation_rate(STD)
-    assert mean_vio == pytest.approx(0.41790123456790124, rel=1e-9)
+    assert mean_vio == pytest.approx(0.4444444444444444, rel=1e-9)
     top = R.max_cell(STD, "violation_rate_free")
-    assert top["violation_rate_free"] == pytest.approx(0.8, rel=1e-9)
+    assert top["violation_rate_free"] == pytest.approx(0.75, rel=1e-9)
     assert top["width"] == pytest.approx(0.3) and top["dg_share"] == pytest.approx(0.6) and top["n_ulds"] == 16
 
 
 def test_befund_gefahrgutanteil_treibt_die_verletzungsrate():
     rows = R.violation_rate_over_share_rows(D)  # width=0.5, n_ulds=12
     assert [r["violation_rate_free"] for r in rows] == pytest.approx(
-        [0.26666666666666666, 0.35, 0.6833333333333333], rel=1e-9)
+        [0.2, 0.4666666666666667, 0.7], rel=1e-9)
 
 
 def test_befund_hauptsweep_kostet_in_allen_27_zellen_exakt_nichts():
@@ -68,24 +68,24 @@ def test_befund_10_positionen_kostet_fast_immer_nichts_selbst_bei_strenger_trenn
 # --- Presets (Referenzzellen aus uldk_constants.PRESETS) -------------------------------------------------------
 def test_preset_standard_zahlen():
     cell = R.find_cell(D, "streng", 6, 0.5, 0.6, 8)
-    assert cell["violation_rate_free"] == pytest.approx(0.7833333333333333, rel=1e-9)
+    assert cell["violation_rate_free"] == pytest.approx(0.7666666666666667, rel=1e-9)
     assert cell["cost_pct"] == pytest.approx(1.2486489492332458, rel=1e-9)
     assert cell["cost_kg_mean"] == pytest.approx(106.57141651324135, rel=1e-9)
 
 
 def test_preset_lockere_trennung_zahlen():
     cell = R.find_cell(D, "standard", 10, 0.5, 0.4, 12)
-    assert cell["violation_rate_free"] == pytest.approx(0.35, rel=1e-9)
+    assert cell["violation_rate_free"] == pytest.approx(0.4666666666666667, rel=1e-9)
     assert cell["cost_pct"] == 0.0
 
 
 def test_preset_viel_gefahrgut_zahlen():
     cell = R.find_cell(D, "streng", 10, 0.5, 0.6, 16)
-    assert cell["violation_rate_free"] == pytest.approx(0.8833333333333333, rel=1e-9)
+    assert cell["violation_rate_free"] == pytest.approx(0.9, rel=1e-9)
     assert cell["cost_pct"] == pytest.approx(0.3671577915869046, rel=1e-9)
 
 
 def test_preset_wenig_gefahrgut_zahlen():
     cell = R.find_cell(D, "standard", 10, 0.5, 0.2, 8)
-    assert cell["violation_rate_free"] == pytest.approx(0.18333333333333332, rel=1e-9)
+    assert cell["violation_rate_free"] == pytest.approx(0.21666666666666667, rel=1e-9)
     assert cell["cost_pct"] == 0.0
