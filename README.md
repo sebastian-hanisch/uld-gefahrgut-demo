@@ -50,7 +50,7 @@ Alle Zahlen aus `data/uldk_results.json`, nachgerechnet in `tests/test_claims.py
 | Treibt der Gefahrgutanteil die Verletzungsrate stärker als das Schwerpunktfenster? | Ja: bei ±0,5 m, 12 ULDs steigt sie mit dem Anteil 20/40/60 % von **20,0 % auf 46,7 % auf 70,0 %**. |
 | Kostet die Einhaltung der Standard-Trennvorschrift bei 10 Positionen Ladegewicht? | **Nein, nie** - in allen 27 Hauptsweep-Zellen exakt 0,00 %. |
 | Kostet die Einhaltung der strengen Trennvorschrift bei 10 Positionen Ladegewicht? | **Fast nie** - in 8 von 9 gemessenen Zellen exakt 0,00 %, nur bei 60 % Gefahrgutanteil und 16 ULDs ein kleiner realer Preis (0,37 %, 56,9 kg). |
-| Wird der Preis real, wenn Positionen knapp werden? | Ja: bei 4-6 Positionen und strenger Trennvorschrift entsteht in 14 von 27 gemessenen Zellen ein Preis > 0, bis zu **1,93 %** (124,2 kg im Mittel, Maximum 1.245,8 kg). |
+| Wird der Preis real, wenn Positionen knapp werden? | Ja: bei 4-6 Positionen und strenger Trennvorschrift entsteht in 13 von 18 gemessenen Zellen ein Preis > 0, bis zu **1,93 %** (124,2 kg im Mittel, Maximum 1.245,8 kg). |
 | Ist CP-SAT verlässlich exakt? | Ja: in allen gemessenen Instanzen (Hauptsweep und Zusatzmessung) wurde das bewiesene Optimum gefunden. |
 
 **Warum „0 % Kosten bei 10 Positionen" erst stressgetestet wurde, bevor es als Befund galt:** eine Kennzahl,
@@ -96,7 +96,7 @@ Einzelprozess statt paralleler Suche, siehe „Befunde und Korrekturen gegenübe
 Positionen** in **8 von 9** gemessenen Zellen exakt 0,00 % - nur die extremste Zelle (60 % Gefahrgutanteil, 16
 ULDs) zeigt einen kleinen realen Preis (0,37 %, 56,9 kg im Mittel). Ein wirtschaftlicher Preis entsteht erst
 zuverlässig, wenn Positionen **knapp** (4-6) UND die Trennvorschrift **streng** ist - und selbst dann nur in
-gut der Hälfte der 18 so gemessenen Zellen (14 von 27 Zellen der Zusatzmessung insgesamt haben überhaupt einen
+13 der 18 so gemessenen Zellen (14 von 27 Zellen der Zusatzmessung insgesamt haben überhaupt einen
 Preis > 0). Größter gemessener Preis: 4 Positionen, 60 % Gefahrgutanteil, 8 ULDs - **1,93 %** (124,2 kg im
 Mittel, Maximum 1.245,8 kg, in 23,3 % der 60 Instanzen überhaupt ein messbarer Verlust).
 
@@ -218,3 +218,5 @@ streamlit run app.py
 ---
 
 Gebaut mit Streamlit, Plotly, NumPy, OR-Tools und fpdf2.
+
+Diese Demo ist Teil des Portfolios von [Sebastian Hanisch](https://sebastianhanisch.net) – Operations Research und Machine Learning ([Über mich](https://sebastianhanisch.net/ueber-mich.html)). Mehr zum Thema: [Luftfracht optimieren](https://sebastianhanisch.net/luftfracht-optimierung.html).
