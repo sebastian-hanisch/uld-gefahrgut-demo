@@ -77,7 +77,7 @@ def judgment_message(violations_free: int, cost_kg: float, cost_pct: float) -> s
 st.title("☣️ Gefahrgut-Trennung: sicher UND schwer beladen?")
 st.markdown(
     """
-Eine gewichts- und schwerpunktoptimale Beladung ([`uld-beladeplan-demo`](https://uld-beladeplan-demo.streamlit.app),
+Eine gewichts- und schwerpunktoptimale Beladung ([`uld-beladeplan-demo`](https://sebastianhanisch-uld-beladeplan-demo.streamlit.app),
 Stück 2 dieser Reihe) ist nicht automatisch eine **sichere**: bestimmte Gefahrgutklassen dürfen nicht auf
 **benachbarten** Laderaumpositionen stehen (Trennvorschrift, vereinfacht nach dem Muster der
 IATA-DGR-Trenntabelle), manche Klassen sind an bestimmten Positionen **grundsätzlich verboten**. Wie oft
@@ -86,7 +86,7 @@ CP-SAT-Läufe live** (unter 1 s): 🔓 **frei** (maximiert Ladegewicht, kennt di
 **mit Trennvorschrift** (dieselbe Zielfunktion, zusätzlich die Trenn- und Verbotsregeln als harte
 Nebenbedingung) - für **eine Instanz**, und vorgerechnet über **60 Instanzen je Zelle** (54 Zellen: Hauptsweep
 plus AP-0-Zusatzmessung), die die Aussage trägt. Wie das Modell funktioniert, steht im Expander „Wie
-funktioniert diese Demo?" weiter unten, die formale Beschreibung im Expander „📐 Mathematische Formulierung".
+funktioniert diese Demo?" weiter unten, die formale Beschreibung im Expander „📐 Mathematische Formulierung“.
 """
 )
 
@@ -306,7 +306,7 @@ $x_{i_1,j} + x_{i_2,j+1} \le 1$ für alle $i_1, i_2$ mit Klasse$(i_1)=a$, Klasse
 
 **Ziel (beide Läufe gleich).** $\max \sum_i x_i w_i$ unter $\sum_j x_{ij} \le 1$ je ULD $i$, $\sum_i x_{ij} \le 1$
 je Position $j$, Positions-Gewichtsgrenze, Schwerpunktfenster an beiden Zeitpunkten (voller/leerer Tank,
-linearisiert wie bei `uld-beladeplan-demo`) - der Lauf „mit Trennvorschrift" hat zusätzlich die beiden
+linearisiert wie bei `uld-beladeplan-demo`) - der Lauf „mit Trennvorschrift“ hat zusätzlich die beiden
 Nebenbedingungen oben.
 
 Implementiert in `uldk_model.py` (Datentypen, Trennvorschrift, Bewertung) und `uldk_oracle.py` (CP-SAT, beide
