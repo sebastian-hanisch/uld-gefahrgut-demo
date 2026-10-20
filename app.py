@@ -90,6 +90,17 @@ funktioniert diese Demo?" weiter unten, die formale Beschreibung im Expander „
 """
 )
 
+# erklaerseite:einfach:start (erzeugt von tools/set_demo_explainer.py (Website-Repo) aus tools/content/explainers/gefahrgut-beladung-erklaert.json, nicht von Hand ändern)
+with st.expander("💬 In einfachen Worten"):
+    st.markdown(
+        """
+Ein Frachtflugzeug soll möglichst viel Gewicht mitnehmen, und der Schwerpunkt muss im erlaubten Fenster bleiben. Dazu werden Container und Paletten auf Positionen im Laderaum verteilt. Gefahrgut macht das schwieriger: Bestimmte Klassen dürfen nicht nebeneinander stehen, manche nicht an bestimmten Positionen. Die Demo rechnet für dieselbe Ladung zwei Beladungen, beide exakt gelöst: eine, die die Trennregel nicht kennt, und eine, die sie einhält. So zeigt sie, wie oft die erste Beladung unsicher wäre und ob die Einhaltung der Regel Ladegewicht kostet. Es ist ein stark vereinfachtes Modell mit erfundenen Flugzeugdaten und vereinfachten Regeln.
+
+[Ausführlich und verständlich erklärt, mit Fachteil](https://sebastianhanisch.net/gefahrgut-beladung-erklaert.html)
+        """
+    )
+# erklaerseite:einfach:end
+
 st.caption("🎯 Schnellstart – ein Beispielszenario laden:")
 preset_names = list(C.PRESETS)
 for row in (preset_names[:3], preset_names[3:]):
@@ -295,6 +306,25 @@ Korrekturen gegenüber dem Plan", für die vollständige Zahlenlage).
     )
 
 with st.expander("📐 Mathematische Formulierung"):
+    # erklaerseite:lesehilfe:start (erzeugt von tools/set_demo_explainer.py (Website-Repo) aus tools/content/explainers/gefahrgut-beladung-erklaert.json, nicht von Hand ändern)
+    st.markdown(
+        r"""
+**Lesehilfe.** Gegeben sind die ULDs mit Gewicht und Gefahrgutklasse, die Laderaumpositionen mit ihren Grenzen und die Trennvorschrift. Gesucht ist die Zuordnung $x_{ij}$ von ULDs zu Positionen, die das geladene Gewicht maximiert; der zweite Lauf hält dabei zusätzlich die Trennvorschrift ein.
+
+| Symbol | Bedeutung |
+|---|---|
+| $i$ | ULD (Frachtcontainer oder Palette) |
+| $j$ | Laderaumposition, nach Hebelarm sortiert |
+| $x_{ij}$ | 1, wenn ULD $i$ auf Position $j$ steht, sonst 0 |
+| $x_i$ | 1, wenn ULD $i$ geladen wird, sonst 0 |
+| $w_i$ | Gewicht des ULD $i$ |
+| $\mathrm{Seg}$ | Menge der Klassenpaare, die nicht benachbart stehen dürfen |
+| $\mathrm{Forbidden}(j)$ | Klassen, die an Position $j$ verboten sind |
+
+[Schritt für Schritt erklärt, mit Herleitung und Literatur](https://sebastianhanisch.net/gefahrgut-beladung-erklaert.html#fachleute)
+        """
+    )
+    # erklaerseite:lesehilfe:end
     st.markdown(
         r"""
 **Nachbarschaft.** Positionen $j, j+1$ in Hebelarm-Reihenfolge sortiert (siehe `uldk_model.adjacent_pairs`).
