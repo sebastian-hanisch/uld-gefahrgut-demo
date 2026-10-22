@@ -204,7 +204,7 @@ Heuristik als Kontrast zu CP-SAT, die Fensterbreite als vierte Dimension der AP-
 - Fünf Demos, die Gefahrgut/Segregation bisher nur als offene Erweiterungsidee nennen (nicht umgesetzt):
   [`bahnladeplan-demo`](https://github.com/sebastian-hanisch/bahnladeplan-demo),
   [`blockzuweisung-demo`](https://github.com/sebastian-hanisch/blockzuweisung-demo),
-  [`freight_demo`](https://github.com/sebastian-hanisch/freight_demo),
+  [`freight-demo`](https://github.com/sebastian-hanisch/freight-demo),
   [`stapelplanung-demo`](https://github.com/sebastian-hanisch/stapelplanung-demo),
   [`stauplanung-demo`](https://github.com/sebastian-hanisch/stauplanung-demo).
 
